@@ -7,7 +7,7 @@ load_dotenv()
 os.environ["SSL_CERT_FILE"] = certifi.where()
 os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage
 from langgraph.graph import StateGraph, START, MessagesState
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -67,10 +67,12 @@ def build_agent(model_name:str):
     Build one LangGraph agent for a selected Gemini model.
     """
     selected_model = normalize_model_name(model_name)
-    llm = ChatGoogleGenerativeAI(
-        model=selected_model,
-        temperature=0.3,
-        streaming=True
+    groq_api_key = os.getenv("GROQ_API_KEY")
+    llm = ChatGroq(
+        model="openai/gpt-oss-120b",
+        api_key=groq_api_key,
+        temperature=0,
+        max_retries=3
     )
     llm_with_tools = llm.bind_tools(tools)
     
