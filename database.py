@@ -38,7 +38,7 @@ class LongTermMemory(Base):
 def init_db():
     Base.metadata.create_all(bind=engine)
 
-def create_or_update_converastion(thread_id:str, first_message:str|None=None):
+def create_or_update_conversation(thread_id:str, first_message:str|None=None):
     db = SessionLocal()
     try:
         conversation = (db.query(Conversation).filter(Conversation.thread_id==thread_id).first())
