@@ -15,6 +15,7 @@ import uvicorn
 from fastapi import FastAPI, Request, UploadFile, File, Form
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
 from langchain_core.messages import (
     HumanMessage,
@@ -38,6 +39,8 @@ from tools import set_current_thread_id
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 Path("uploads").mkdir(exist_ok=True)
 Path("data").mkdir(exist_ok=True)
