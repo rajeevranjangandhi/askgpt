@@ -1,0 +1,28 @@
+verrion control system-
+track history and easier to work in team
+two type of version control system
+centralized version control (CVS,SVN)
+distributed version control (mercurial,git,bazaar)
+Git created by Linus Torvalds inventor of Linux
+
+git add . (adding code into local staging area)
+git commit (Commiting code with unique address into local repository)
+git push (updating code into remote repository)
+
+GUI tool- Gitkraken ,Sourcetree, TortoiseGit, GitUI
+3 level of git configuration
+1. System
+2. Global
+3. Local
+Order of priority of git configuration
+System < Global < Local
+
+steps to Creating a file using git bash
+1. cat > <file_name> (enter<- )
+2. Write text into filename
+3. Control + D (enter<- )
+
+Command to copy a file using git bash
+cp <filename1> <filename2>(enter<- )
+
+removing file from staging area when git add command executed
