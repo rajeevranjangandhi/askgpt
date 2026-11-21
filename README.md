@@ -1,6 +1,6 @@
-# AskGPT
+# Thread Pilot
 
-AskGPT is an open-source **agentic AI chatbot** built with **Python, FastAPI, LangGraph, LangChain, Google Gemini, Tavily, ChromaDB, and SQLite**.
+Thread Pilot is an open-source **agentic AI chatbot** built with **Python, FastAPI, LangGraph, LangChain, Google Gemini, Tavily, ChromaDB, and SQLite**.
 
 It supports real-time streaming chat, document uploads, retrieval-augmented generation (RAG), web search, conversation memory, and a simple web UI.
 
@@ -61,13 +61,13 @@ Optional for deployment:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/rajeevranjangandhi/askgpt
+git clone https://github.com/rajeevranjangandhi/askgpt thread-pilot
 ```
 
 ### 2. Navigate to the project directory
 
 ```bash
-cd AskGPT
+cd thread-pilot
 ```
 
 ### 3. Create a virtual environment
@@ -75,13 +75,13 @@ cd AskGPT
 Using conda:
 
 ```bash
-conda create -n AskGPT python=3.11 -y
+conda create -n thread-pilot python=3.11 -y
 ```
 
 ### 4. Activate the virtual environment
 
 ```bash
-conda activate AskGPT
+conda activate thread-pilot
 ```
 
 ### 5. Install dependencies
@@ -96,7 +96,7 @@ pip install -r requirements.txt
 
 Create a `.env` file in the project root directory.
 
-AskGPT runs on **free AI models**. Configure at least one provider:
+Thread Pilot runs on **free AI models**. Configure at least one provider:
 
 | Provider | Cost | Setup |
 |---|---|---|
@@ -122,7 +122,7 @@ TAVILY_API_KEY=your_tavily_api_key
 LANGSMITH_TRACING=false
 LANGSMITH_ENDPOINT=https://api.smith.langchain.com
 LANGSMITH_API_KEY=your_langsmith_api_key
-LANGSMITH_PROJECT=AskGPT
+LANGSMITH_PROJECT=thread-pilot
 ```
 
 If you do not want to use LangSmith tracing, keep:
@@ -152,7 +152,7 @@ http://127.0.0.1:8080
 ## Project Structure
 
 ```text
-AskGPT/
+thread-pilot/
 │
 ├── app.py                  # FastAPI app and streaming chat endpoints
 ├── agent.py                # LangGraph agent setup and tool orchestration
@@ -178,18 +178,18 @@ AskGPT/
 ### 1. Build the Docker image
 
 ```bash
-docker build -t AskGPT .
+docker build -t thread-pilot .
 ```
 
 ### 2. Run the Docker container
 
 ```bash
 docker run -d \
-  --name AskGPT \
+  --name thread-pilot \
   --restart always \
   -p 8080:8080 \
   --env-file .env \
-  AskGPT
+  thread-pilot
 ```
 
 The app will be available at:
@@ -232,13 +232,13 @@ Create an Amazon ECR repository.
 Example full ECR image URI:
 
 ```text
-315865595366.dkr.ecr.us-east-1.amazonaws.com/AskGPT
+315865595366.dkr.ecr.us-east-1.amazonaws.com/thread-pilot
 ```
 
 For GitHub Secrets, only save the repository name:
 
 ```text
-ECR_REPO=AskGPT
+ECR_REPO=thread-pilot
 ```
 
 Do not save the full ECR URI as `ECR_REPO`.
@@ -344,11 +344,11 @@ Example:
 
 ```text
 AWS_DEFAULT_REGION=us-east-1
-ECR_REPO=AskGPT
+ECR_REPO=thread-pilot
 GOOGLE_MODEL=gemini-2.5-flash
 LANGSMITH_TRACING=true
 LANGSMITH_ENDPOINT=https://api.smith.langchain.com
-LANGSMITH_PROJECT=AskGPT
+LANGSMITH_PROJECT=thread-pilot
 ```
 
 ---

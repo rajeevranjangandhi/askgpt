@@ -74,7 +74,7 @@ def _default_model() -> str:
 
 
 SYSTEM_PROMPT = """
-You are a helpful Agentic AI assistant named AskGPT, similar to ChatGPT.
+You are a helpful Agentic AI assistant named Thread Pilot, similar to ChatGPT.
 
 You can:
 1. Answer general questions.
