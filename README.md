@@ -232,7 +232,7 @@ Create an Amazon ECR repository.
 Example full ECR image URI:
 
 ```text
-315865595366.dkr.ecr.us-east-1.amazonaws.com/thread-pilot
+090668729056.dkr.ecr.ap-southeast-2.amazonaws.com/thread_pilot
 ```
 
 For GitHub Secrets, only save the repository name:
