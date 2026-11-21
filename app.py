@@ -23,7 +23,7 @@ from langchain_core.messages import (
     ToolMessage
 )
 
-from agent import get_agent
+from agent import get_agent, available_models, normalize_model_name
 from database import (
     init_db,
     save_chat_message,
@@ -54,6 +54,14 @@ async def home(request: Request):
         context={}
     )
 
+
+
+@app.get("/models")
+async def models():
+    return {
+        "models": available_models(),
+        "default": normalize_model_name(None)
+    }
 
 
 @app.get("/conversations")
@@ -226,7 +234,7 @@ async def chat_stream(request: Request):
 
     user_message = data.get("message", "")
     thread_id = data.get("thread_id", "default")
-    selected_model = data.get("model", "gemini-2.5-flash")
+    selected_model = data.get("model")
 
     if not user_message.strip():
         return JSONResponse(
@@ -234,7 +242,10 @@ async def chat_stream(request: Request):
             status_code=400
         )
 
-    agent = get_agent(selected_model)
+    try:
+        agent = get_agent(selected_model)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
     create_or_update_conversation(thread_id, user_message)
     save_chat_message(thread_id, "user", user_message)

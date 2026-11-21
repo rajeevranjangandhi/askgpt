@@ -96,9 +96,26 @@ pip install -r requirements.txt
 
 Create a `.env` file in the project root directory.
 
+AskGPT runs on **free AI models**. Configure at least one provider:
+
+| Provider | Cost | Setup |
+|---|---|---|
+| Groq | Free tier | Get a key at https://console.groq.com/keys → `GROQ_API_KEY` |
+| Google Gemini | Free tier | Get a key at https://aistudio.google.com/apikey → `GOOGLE_API_KEY` |
+| Ollama | Free, runs locally | Install https://ollama.com, `ollama pull llama3.1`, set `OLLAMA_MODELS=llama3.1` |
+
+The model dropdown only shows models whose provider is configured.
+
 ```env
-GOOGLE_API_KEY=your_google_api_key
-GOOGLE_MODEL=gemini-2.5-flash
+GROQ_API_KEY=your_groq_api_key
+GOOGLE_API_KEY=your_google_api_key   # also used for document embeddings (RAG)
+
+# Optional: override model lists (comma separated) and the default model
+# GROQ_MODELS=openai/gpt-oss-120b,openai/gpt-oss-20b,qwen/qwen3.8-27b
+# GEMINI_MODELS=gemini-flash-latest,gemini-flash-lite-latest
+# OLLAMA_MODELS=llama3.1,qwen2.5
+# OLLAMA_BASE_URL=http://localhost:11434
+# DEFAULT_MODEL=openai/gpt-oss-120b
 
 TAVILY_API_KEY=your_tavily_api_key
 

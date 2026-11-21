@@ -1,2 +1,15 @@
 
 .env
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Local databases (runtime data)
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+data/
+chroma_db/
