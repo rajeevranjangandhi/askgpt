@@ -50,6 +50,27 @@
             box-shadow: 0 6px 24px rgba(109, 91, 208, 0.10);
         }
 
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .brand-name {
+            display: block;
+            font-size: 19px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+
+        .brand-tagline {
+            display: block;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
         .logo-mark {
             width: 44px;
             height: 44px;
@@ -58,7 +79,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 18px;
+            flex-shrink: 0;
         }
 
         .logo-mark img {
@@ -163,12 +184,18 @@
 
 {% set is_signup = mode == "signup" %}
 <main class="panel">
-    <div class="logo-mark">
-        <img src="/static/icons/favicon.svg" alt="">
+    <div class="brand">
+        <div class="logo-mark">
+            <img src="/static/icons/favicon.svg" alt="">
+        </div>
+        <div>
+            <span class="brand-name">Thread Pilot</span>
+            <span class="brand-tagline">Your research co-pilot</span>
+        </div>
     </div>
 
     <h1>{{ "Create your account" if is_signup else "Welcome back" }}</h1>
-    <p class="sub">{{ "Sign up to start using Thread Pilot." if is_signup else "Log in to continue to Thread Pilot." }}</p>
+    <p class="sub">{{ "Sign up to get started." if is_signup else "Log in to continue your threads." }}</p>
 
     <form id="authForm" data-mode="{{ mode }}">
         <label for="email">Email</label>
