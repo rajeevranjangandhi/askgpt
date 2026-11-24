@@ -213,6 +213,46 @@
             background: var(--accent);
         }
 
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .account-email {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .logout-btn {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 13px;
+            border-radius: 999px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .logout-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .account-email {
+                display: none;
+            }
+        }
+
         .chat-container {
             flex: 1;
             overflow-y: auto;
@@ -715,7 +755,11 @@
 <main class="main">
     <div class="topbar">
         <div>Thread Pilot</div>
-        <div class="status" id="status">Ready</div>
+        <div class="topbar-right">
+            <div class="status" id="status">Ready</div>
+            <span class="account-email" title="{{ email }}">{{ email }}</span>
+            <button class="logout-btn" onclick="logout()">Log out</button>
+        </div>
     </div>
 
     <div class="chat-container" id="chatContainer"></div>
@@ -759,6 +803,22 @@
 </main>
 
 <script>
+    // If the session has ended, any request sends the user back to the login page.
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+        const response = await originalFetch(...args);
+        if (response.status === 401) {
+            window.location.href = "/login";
+        }
+        return response;
+    };
+
+    async function logout() {
+        await fetch("/logout", { method: "POST" });
+        localStorage.removeItem("thread_id");
+        window.location.href = "/login";
+    }
+
     const NOTICE_DEFAULT = "Answers are AI-generated and may be inaccurate — double-check anything important.";
 
     const MIC_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/></svg>';
@@ -1152,6 +1212,13 @@
 
         try {
             const response = await fetch(`/history/${threadId}`);
+
+            // Saved thread belongs to another account: start a fresh one.
+            if (response.status === 404) {
+                await newChat();
+                return;
+            }
+
             const data = await response.json();
 
             chatContainer.innerHTML = "";
@@ -1266,9 +1333,15 @@
         const botElement = addMessage("assistant", "");
 
         let firstTokenReceived = false;
+        let answeringModel = selectedModel;
 
         function handleStreamData(data) {
             if (!data) return;
+
+            // The server may switch models when the selected one is overloaded.
+            if (data.model) {
+                answeringModel = data.model;
+            }
 
             if (data.token !== undefined && data.token !== null) {
                 if (!firstTokenReceived) {
@@ -1278,7 +1351,7 @@
                         completeToolProgress(toolProgress, likelyTool);
                     }
 
-                    statusText.textContent = `Generating with ${selectedModel}...`;
+                    statusText.textContent = `Generating with ${answeringModel}...`;
                 }
 
                 appendMessageText(botElement, data.token);

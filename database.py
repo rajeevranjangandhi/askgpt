@@ -1,6 +1,8 @@
 from datetime import datetime
+import uuid
 from pathlib import Path
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime
+from sqlalchemy import create_engine, inspect, text, Column, ForeignKey, Integer, String, Text, DateTime
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import declarative_base, sessionmaker
 Path("data").mkdir(exist_ok=True)
 DATABASE_URL = "sqlite:///data/chatbot_memory.db"
@@ -10,11 +12,27 @@ engine = create_engine(DATABASE_URL,connect_args={"check_same_thread":False})
 SessionLocal = sessionmaker(bind=engine,autoflush=False,autocommit=False)
 Base = declarative_base()
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+
+    token_hash = Column(String, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+
 class Conversation(Base):
     __tablename__ = "conversations"
 
     id = Column(Integer, primary_key=True,index=True)
     thread_id = Column(String, unique=True,index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
     title = Column(String, default="New Chat")
     created_at = Column(DateTime,default=datetime.utcnow)
     updated_at = Column(DateTime,default=datetime.utcnow)
@@ -38,7 +56,90 @@ class LongTermMemory(Base):
 def init_db():
     Base.metadata.create_all(bind=engine)
 
-def create_or_update_conversation(thread_id:str, first_message:str|None=None):
+    # Databases created before login existed lack this column. Their old
+    # conversations keep user_id NULL and so belong to nobody.
+    columns = [c["name"] for c in inspect(engine).get_columns("conversations")]
+    if "user_id" not in columns:
+        with engine.begin() as connection:
+            connection.execute(text("ALTER TABLE conversations ADD COLUMN user_id INTEGER"))
+
+
+# ---------- Users and login sessions ----------
+
+def create_user(email: str, password_hash: str) -> int | None:
+    """Returns the new user's id, or None if the email is already registered."""
+    db = SessionLocal()
+    try:
+        user = User(email=email, password_hash=password_hash)
+        db.add(user)
+        db.commit()
+        return user.id
+    except IntegrityError:
+        db.rollback()
+        return None
+    finally:
+        db.close()
+
+
+def get_user_by_email(email: str):
+    db = SessionLocal()
+    try:
+        return db.query(User).filter(User.email == email).first()
+    finally:
+        db.close()
+
+
+def create_session(token_hash: str, user_id: int, expires_at: datetime):
+    db = SessionLocal()
+    try:
+        db.query(UserSession).filter(UserSession.expires_at < datetime.utcnow()).delete()
+        db.add(UserSession(token_hash=token_hash, user_id=user_id, expires_at=expires_at))
+        db.commit()
+    finally:
+        db.close()
+
+
+def get_session_user(token_hash: str):
+    db = SessionLocal()
+    try:
+        return (
+            db.query(User)
+            .join(UserSession, UserSession.user_id == User.id)
+            .filter(UserSession.token_hash == token_hash)
+            .filter(UserSession.expires_at > datetime.utcnow())
+            .first()
+        )
+    finally:
+        db.close()
+
+
+def delete_session(token_hash: str):
+    db = SessionLocal()
+    try:
+        db.query(UserSession).filter(UserSession.token_hash == token_hash).delete()
+        db.commit()
+    finally:
+        db.close()
+
+
+# ---------- Conversations ----------
+
+def can_use_thread(thread_id: str, user_id: int) -> bool:
+    """True if the thread belongs to this user, or is a new (unused) thread id."""
+    try:
+        uuid.UUID(thread_id)
+    except (ValueError, TypeError, AttributeError):
+        return False
+
+    db = SessionLocal()
+    try:
+        conversation = db.query(Conversation).filter(Conversation.thread_id == thread_id).first()
+        return conversation is None or conversation.user_id == user_id
+    finally:
+        db.close()
+
+
+def create_or_update_conversation(thread_id:str, user_id:int, first_message:str|None=None):
     db = SessionLocal()
     try:
         conversation = (db.query(Conversation).filter(Conversation.thread_id==thread_id).first())
@@ -48,7 +149,7 @@ def create_or_update_conversation(thread_id:str, first_message:str|None=None):
                 title = first_message.strip()[:40]
                 if len(first_message.strip())>40:
                     title += "..."
-            conversation = Conversation(thread_id=thread_id,title=title,created_at=datetime.utcnow(),updated_at=datetime.utcnow())
+            conversation = Conversation(thread_id=thread_id,user_id=user_id,title=title,created_at=datetime.utcnow(),updated_at=datetime.utcnow())
             db.add(conversation)
         else:
             conversation.updated_at = datetime.utcnow()
@@ -56,10 +157,10 @@ def create_or_update_conversation(thread_id:str, first_message:str|None=None):
     finally:
         db.close()
 
-def list_conversations():
+def list_conversations(user_id: int):
     db = SessionLocal()
     try:
-        return (db.query(Conversation).order_by(Conversation.updated_at.desc()).all())
+        return (db.query(Conversation).filter(Conversation.user_id==user_id).order_by(Conversation.updated_at.desc()).all())
     finally:
         db.close()
 

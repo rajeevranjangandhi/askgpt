@@ -13,3 +13,6 @@ __pycache__/
 *.sqlite-shm
 data/
 chroma_db/
+
+# Users' uploaded documents
+uploads/

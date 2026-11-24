@@ -12,7 +12,9 @@ import uuid
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, Request, UploadFile, File, Form
+from fastapi import Depends, FastAPI, Request, UploadFile, File, Form
+from fastapi.concurrency import run_in_threadpool
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -24,19 +26,31 @@ from langchain_core.messages import (
     ToolMessage
 )
 
+from auth import require_user, router as auth_router
 from agent import get_agent, available_models, normalize_model_name
 from database import (
     init_db,
     save_chat_message,
     get_chat_history,
+    can_use_thread,
     create_or_update_conversation,
     list_conversations)
 
 from rag import add_document_to_rag
-from tools import set_current_thread_id
 
 
-app = FastAPI()
+# Every route requires a login, except the paths listed in auth.PUBLIC_PATHS.
+# The automatic API docs are off because they would be public.
+app = FastAPI(
+    dependencies=[Depends(require_user)],
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None
+)
+app.include_router(auth_router)
+
+# Smaller page/JS downloads. Streaming responses (text/event-stream) are not compressed.
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 templates = Jinja2Templates(directory="templates")
 
@@ -54,7 +68,8 @@ async def home(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={}
+        context={"email": request.state.user.email},
+        headers={"Cache-Control": "no-store"}
     )
 
 
@@ -68,8 +83,8 @@ async def models():
 
 
 @app.get("/conversations")
-async def conversations():
-    items = list_conversations()
+def conversations(request: Request):
+    items = list_conversations(request.state.user.id)
 
     return {
         "conversations": [
@@ -86,7 +101,10 @@ async def conversations():
 
 
 @app.get("/history/{thread_id}")
-async def history(thread_id: str):
+def history(request: Request, thread_id: str):
+    if not can_use_thread(thread_id, request.state.user.id):
+        return JSONResponse({"error": "Conversation not found."}, status_code=404)
+
     messages = get_chat_history(thread_id)
 
     return {
@@ -104,13 +122,23 @@ async def history(thread_id: str):
 
 @app.post("/upload")
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     thread_id: str = Form(...)
 ):
+    user_id = request.state.user.id
+
+    if not can_use_thread(thread_id, user_id):
+        return JSONResponse(
+            {"success": False, "message": "Conversation not found."},
+            status_code=404
+        )
+
     try:
         allowed_extensions = [".pdf", ".docx", ".txt", ".md", ".py", ".csv"]
 
-        filename = file.filename or "uploaded_file"
+        # Keep the name only, so a crafted filename cannot point to another folder.
+        filename = Path((file.filename or "uploaded_file").replace("\\", "/")).name
         suffix = Path(filename).suffix.lower()
 
         if suffix not in allowed_extensions:
@@ -129,9 +157,12 @@ async def upload_document(
         with open(file_path, "wb") as f:
             f.write(await file.read())
 
-        create_or_update_conversation(thread_id, "Uploaded document")
+        create_or_update_conversation(thread_id, user_id, "Uploaded document")
 
-        result = add_document_to_rag(
+        # Embedding is slow network work; keep it off the event loop so that
+        # other users' requests are not blocked during an upload.
+        result = await run_in_threadpool(
+            add_document_to_rag,
             file_path=file_path,
             thread_id=thread_id
         )
@@ -236,7 +267,8 @@ async def chat_stream(request: Request):
         )
 
     user_message = data.get("message", "")
-    thread_id = data.get("thread_id", "default")
+    thread_id = data.get("thread_id")
+    user_id = request.state.user.id
     selected_model = data.get("model")
 
     if not user_message.strip():
@@ -245,15 +277,16 @@ async def chat_stream(request: Request):
             status_code=400
         )
 
+    if not can_use_thread(thread_id, user_id):
+        return JSONResponse({"error": "Conversation not found."}, status_code=404)
+
     try:
         agent = get_agent(selected_model)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
-    create_or_update_conversation(thread_id, user_message)
+    create_or_update_conversation(thread_id, user_id, user_message)
     save_chat_message(thread_id, "user", user_message)
-
-    set_current_thread_id(thread_id)
 
     config = {
         "configurable": {
@@ -263,6 +296,7 @@ async def chat_stream(request: Request):
 
     def event_generator():
         final_answer = ""
+        answering_model = None
 
         try:
             inputs = {
@@ -282,6 +316,11 @@ async def chat_stream(request: Request):
                 token = extract_text_from_chunk(chunk)
 
                 if token:
+                    model = metadata.get("ls_model_name")
+                    if model and model != answering_model:
+                        answering_model = model
+                        yield sse_data({"model": model})
+
                     final_answer += token
                     yield sse_data({"token": token})
 

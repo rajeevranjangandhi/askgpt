@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ "Sign up" if mode == "signup" else "Log in" }} - Thread Pilot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="/static/fonts/plus-jakarta-sans.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #F7F5FC;
+            --surface: #FFFFFF;
+            --text: #37304A;
+            --text-muted: #6F6783;
+            --accent: #6D5BD0;
+            --accent-hover: #5B49BE;
+            --accent-soft: #E6E0FA;
+            --border: #E5DFF1;
+            --danger: #C0334B;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 24px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .panel {
+            width: 100%;
+            max-width: 400px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 32px 28px;
+            box-shadow: 0 6px 24px rgba(109, 91, 208, 0.10);
+        }
+
+        .logo-mark {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, var(--accent), #9B8CEB);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            font-size: 23px;
+            letter-spacing: -0.02em;
+            margin: 0 0 4px;
+        }
+
+        .sub {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin: 0 0 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            font: inherit;
+            font-size: 15px;
+            color: var(--text);
+            padding: 11px 13px;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            margin-bottom: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        button {
+            width: 100%;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            background: var(--accent);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+        }
+
+        button:focus-visible {
+            outline: 3px solid var(--accent-soft);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        .error {
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: 500;
+            margin: 0 0 14px;
+        }
+
+        .error:empty {
+            display: none;
+        }
+
+        .switch {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 20px 0 0;
+        }
+
+        .switch a {
+            color: var(--accent);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .switch a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+{% set is_signup = mode == "signup" %}
+<main class="panel">
+    <div class="logo-mark">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+    </div>
+
+    <h1>{{ "Create your account" if is_signup else "Welcome back" }}</h1>
+    <p class="sub">{{ "Sign up to start using Thread Pilot." if is_signup else "Log in to continue to Thread Pilot." }}</p>
+
+    <form id="authForm" data-mode="{{ mode }}">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username" maxlength="254" required autofocus>
+
+        <label for="password">Password</label>
+        {% if is_signup %}
+        <input id="password" type="password" autocomplete="new-password" minlength="{{ min_password }}" maxlength="{{ max_password }}" placeholder="At least {{ min_password }} characters" required>
+
+        <label for="confirm">Confirm password</label>
+        <input id="confirm" type="password" autocomplete="new-password" maxlength="{{ max_password }}" required>
+        {% else %}
+        <input id="password" type="password" autocomplete="current-password" maxlength="{{ max_password }}" required>
+        {% endif %}
+
+        <p class="error" id="error" role="alert"></p>
+        <button type="submit" id="submitBtn">{{ "Sign up" if is_signup else "Log in" }}</button>
+    </form>
+
+    <p class="switch">
+        {% if is_signup %}
+        Already have an account? <a href="/login">Log in</a>
+        {% else %}
+        New here? <a href="/signup">Create an account</a>
+        {% endif %}
+    </p>
+</main>
+
+<script>
+    const form = document.getElementById("authForm");
+    const errorText = document.getElementById("error");
+    const submitBtn = document.getElementById("submitBtn");
+    const confirmInput = document.getElementById("confirm");
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        errorText.textContent = "";
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        if (confirmInput && confirmInput.value !== password) {
+            errorText.textContent = "The passwords do not match.";
+            return;
+        }
+
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch("/" + form.dataset.mode, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (response.ok) {
+                // Never continue a thread left over from another account.
+                localStorage.removeItem("thread_id");
+                window.location.href = "/";
+                return;
+            }
+
+            const data = await response.json().catch(() => ({}));
+            errorText.textContent = data.error || "Something went wrong. Please try again.";
+        } catch (error) {
+            errorText.textContent = "Could not reach the server. Please try again.";
+        }
+
+        submitBtn.disabled = false;
+    });
+</script>
+
+</body>
+</html>

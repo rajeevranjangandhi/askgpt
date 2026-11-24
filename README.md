@@ -8,6 +8,7 @@ It supports real-time streaming chat, document uploads, retrieval-augmented gene
 
 ## Features
 
+* Sign up and log in, with private chats and documents per user
 * Chat with an AI agent powered by Google Gemini
 * Stream responses in real time
 * Upload documents such as PDF, DOCX, TXT, MD, PY, and CSV
@@ -118,6 +119,9 @@ GOOGLE_API_KEY=your_google_api_key   # also used for document embeddings (RAG)
 # DEFAULT_MODEL=openai/gpt-oss-120b
 
 TAVILY_API_KEY=your_tavily_api_key
+
+# Set to true once the site is served over HTTPS
+# COOKIE_SECURE=false
 
 LANGSMITH_TRACING=false
 LANGSMITH_ENDPOINT=https://api.smith.langchain.com

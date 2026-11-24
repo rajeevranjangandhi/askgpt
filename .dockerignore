@@ -5,3 +5,17 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Secrets
+.env
+
+# Runtime data (accounts, chats, documents)
+data/
+chroma_db/
+uploads/
+
+# Not needed in the image
+.git
+.github
+__pycache__/
+*.pyc
