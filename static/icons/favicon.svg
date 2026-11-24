@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5B49BE"/>
+      <stop offset="1" stop-color="#8574E0"/>
+    </linearGradient>
+    <!-- Cuts a gap in the needle where the thread passes through it -->
+    <mask id="m">
+      <rect width="64" height="64" fill="#fff"/>
+      <path d="M11 29C13 20 23 21 32 32S51 44 53 35" fill="none" stroke="#000" stroke-width="9.500"/>
+    </mask>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#g)"/>
+  <!-- Original mark for Thread Pilot.
+       Pilot: a compass needle, bright half pointing the way -->
+  <g mask="url(#m)" stroke-width="3" stroke-linejoin="round">
+    <path fill="#C4B8FF" stroke="#C4B8FF" d="M11 53L23.500 23.500L40.500 40.500Z"/>
+    <path fill="#fff" stroke="#fff" d="M53 11L23.500 23.500L40.500 40.500Z"/>
+  </g>
+  <!-- Thread: one strand passing through the needle's eye -->
+  <path d="M11 29C13 20 23 21 32 32S51 44 53 35" fill="none" stroke="#FFD166" stroke-width="4.500" stroke-linecap="round"/>
+</svg>
