@@ -54,12 +54,17 @@
             width: 44px;
             height: 44px;
             border-radius: 13px;
-            background: linear-gradient(135deg, var(--accent), #9B8CEB);
-            color: #fff;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 18px;
+        }
+
+        .logo-mark img {
+            display: block;
+            width: 100%;
+            height: 100%;
         }
 
         h1 {
@@ -159,7 +164,7 @@
 {% set is_signup = mode == "signup" %}
 <main class="panel">
     <div class="logo-mark">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+        <img src="/static/icons/favicon.svg" alt="">
     </div>
 
     <h1>{{ "Create your account" if is_signup else "Welcome back" }}</h1>

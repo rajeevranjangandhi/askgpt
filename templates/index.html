@@ -75,13 +75,19 @@
             width: 36px;
             height: 36px;
             border-radius: 11px;
-            background: linear-gradient(135deg, var(--accent), #9B8CEB);
-            color: #fff;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
             box-shadow: 0 4px 12px rgba(109, 91, 208, 0.30);
+        }
+
+        .logo-mark img,
+        .bot-avatar img {
+            display: block;
+            width: 100%;
+            height: 100%;
         }
 
         .brand-text {
@@ -404,8 +410,7 @@
         }
 
         .bot-avatar {
-            background: linear-gradient(135deg, var(--accent), #9B8CEB);
-            color: #fff;
+            overflow: hidden;
         }
 
         .message-content {
@@ -739,7 +744,7 @@
 <aside class="sidebar">
     <div class="brand">
         <div class="logo-mark">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+            <img src="/static/icons/favicon.svg" alt="">
         </div>
         <div class="brand-text">
             <span class="brand-name">Thread Pilot</span>
@@ -827,7 +832,7 @@
 
     const MIC_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/></svg>';
     const STOP_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
-    const BOT_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>';
+    const BOT_ICON = '<img src="/static/icons/favicon.svg" alt="">';
 
     const ICON_GLOBE = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
     const ICON_DOC = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>';
